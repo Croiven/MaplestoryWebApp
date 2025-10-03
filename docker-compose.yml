@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: maplestory-postgres
+    environment:
+      POSTGRES_DB: maplestory_db
+      POSTGRES_USER: maplestory_user
+      POSTGRES_PASSWORD: maplestory_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - maplestory-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maplestory_user -d maplestory_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: maplestory-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - maplestory-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Development environment
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: maplestory-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3001:3000"  # React dev server
+      - "5001:5000"  # Express server
+      - "5555:5555"  # Prisma Studio
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://maplestory_user:maplestory_password@postgres:5432/maplestory_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - maplestory-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  maplestory-network:
+    driver: bridge

@@ -1,0 +1,83 @@
+# Multi-stage build for production
+
+# Stage 1: Build shared package
+FROM node:18-alpine AS shared-builder
+WORKDIR /app
+COPY shared/package*.json ./shared/
+RUN npm install --workspace=shared
+COPY shared/ ./shared/
+RUN npm run build --workspace=shared
+
+# Stage 2: Build client
+FROM node:18-alpine AS client-builder
+WORKDIR /app
+COPY client/package*.json ./client/
+RUN npm install --workspace=client
+COPY shared/ ./shared/
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY client/ ./client/
+RUN npm run build --workspace=client
+
+# Stage 3: Build server
+FROM node:18-alpine AS server-builder
+WORKDIR /app
+COPY server/package*.json ./server/
+COPY database/package*.json ./database/
+RUN npm install --workspace=server --workspace=database
+COPY shared/ ./shared/
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY database/ ./database/
+COPY server/ ./server/
+RUN npm run db:generate --workspace=database
+RUN npm run build --workspace=server
+
+# Stage 4: Build Discord bot
+FROM node:18-alpine AS discord-builder
+WORKDIR /app
+COPY discord-bot/package*.json ./discord-bot/
+RUN npm install --workspace=discord-bot
+COPY shared/ ./shared/
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY discord-bot/ ./discord-bot/
+RUN npm run build --workspace=discord-bot
+
+# Stage 5: Production image
+FROM node:18-alpine AS production
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    postgresql-client \
+    dumb-init
+
+# Copy built applications
+COPY --from=client-builder /app/client/dist ./client/dist
+COPY --from=server-builder /app/server/dist ./server/dist
+COPY --from=server-builder /app/server/package*.json ./server/
+COPY --from=discord-builder /app/discord-bot/dist ./discord-bot/dist
+COPY --from=discord-builder /app/discord-bot/package*.json ./discord-bot/
+COPY --from=shared-builder /app/shared/dist ./shared/dist
+COPY --from=shared-builder /app/shared/package*.json ./shared/
+COPY database/ ./database/
+
+# Install production dependencies
+RUN npm install --workspace=server --workspace=discord-bot --workspace=database --workspace=shared --production
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Change ownership
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+# Expose ports
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Start application
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server/dist/index.js"]

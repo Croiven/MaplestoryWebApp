@@ -1,0 +1,38 @@
+{
+  "name": "maplestory-webapp",
+  "version": "1.0.0",
+  "description": "MapleStory Web Application with React frontend, Node.js backend, database, and Discord bot",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "database",
+    "discord-bot",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:discord\"",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:discord": "npm run dev --workspace=discord-bot",
+    "build": "npm run build --workspaces",
+    "build:client": "npm run build --workspace=client",
+    "build:server": "npm run build --workspace=server",
+    "build:discord": "npm run build --workspace=discord-bot",
+    "install:all": "npm install && npm install --workspaces",
+    "setup:env": "node scripts/setup-env.js",
+    "setup": "npm run install:all && npm run setup:env",
+    "db:generate": "npm run generate --workspace=database",
+    "db:push": "npm run db:push --workspace=database",
+    "db:migrate": "npm run migrate --workspace=database",
+    "db:studio": "npm run studio --workspace=database"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

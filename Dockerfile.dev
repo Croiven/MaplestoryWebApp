@@ -1,0 +1,38 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    postgresql-client \
+    git \
+    openssl \
+    libssl3
+
+# Copy package files
+COPY package*.json ./
+COPY client/package*.json ./client/
+COPY server/package*.json ./server/
+COPY database/package*.json ./database/
+COPY discord-bot/package*.json ./discord-bot/
+COPY shared/package*.json ./shared/
+
+# Install dependencies
+RUN npm install
+RUN npm install --workspaces
+
+# Copy source code
+COPY . .
+
+# Build shared package first
+RUN npm run build --workspace=shared
+
+# Generate Prisma client
+RUN npm run db:generate
+
+# Expose ports
+EXPOSE 3000 5000 5555
+
+# Start development server
+CMD ["npm", "run", "dev"]
