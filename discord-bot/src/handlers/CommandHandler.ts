@@ -7,17 +7,17 @@ import {
   ButtonStyle 
 } from 'discord.js'
 import { CharacterService } from '../services/CharacterService'
-import { OCRService } from '../services/OCRService'
+import { GeminiVisionOCRService } from '../services/GeminiVisionOCRService'
 import { UserService } from '../services/UserService'
 
 export class CommandHandler {
   private characterService: CharacterService
-  private ocrService: OCRService
+  private ocrService: GeminiVisionOCRService
   private userService: UserService
 
   constructor(characterService: CharacterService) {
     this.characterService = characterService
-    this.ocrService = new OCRService()
+    this.ocrService = new GeminiVisionOCRService()
     this.userService = new UserService()
   }
 
@@ -465,24 +465,30 @@ export class CommandHandler {
         const basicStatsRight = []
         const basicStatsRightMissing = []
         
+        // Helper function to check if a stat was detected (simplified for Gemini-only)
+        const wasDetected = (statName: string) => {
+          const value = (character.stats as any)[statName]
+          return value !== undefined && value !== null
+        }
+
         // Left Column: HP, STR, INT
-        if ((character.stats as any)._originalExtracted?.hp !== undefined) basicStatsLeft.push(`✅ HP: ${character.stats.hp.toLocaleString()}`)
+        if (wasDetected('hp')) basicStatsLeft.push(`✅ HP: ${character.stats.hp.toLocaleString()}`)
         else basicStatsLeftMissing.push(`❌ HP: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.str !== undefined) basicStatsLeft.push(`✅ STR: ${character.stats.str}`)
+        if (wasDetected('str')) basicStatsLeft.push(`✅ STR: ${character.stats.str}`)
         else basicStatsLeftMissing.push(`❌ STR: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.int !== undefined) basicStatsLeft.push(`✅ INT: ${character.stats.int}`)
+        if (wasDetected('int')) basicStatsLeft.push(`✅ INT: ${character.stats.int}`)
         else basicStatsLeftMissing.push(`❌ INT: Not detected`)
         
         // Right Column: MP, DEX, LUK
-        if ((character.stats as any)._originalExtracted?.mp !== undefined) basicStatsRight.push(`✅ MP: ${character.stats.mp.toLocaleString()}`)
+        if (wasDetected('mp')) basicStatsRight.push(`✅ MP: ${character.stats.mp.toLocaleString()}`)
         else basicStatsRightMissing.push(`❌ MP: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.dex !== undefined) basicStatsRight.push(`✅ DEX: ${character.stats.dex}`)
+        if (wasDetected('dex')) basicStatsRight.push(`✅ DEX: ${character.stats.dex}`)
         else basicStatsRightMissing.push(`❌ DEX: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.luk !== undefined) basicStatsRight.push(`✅ LUK: ${character.stats.luk}`)
+        if (wasDetected('luk')) basicStatsRight.push(`✅ LUK: ${character.stats.luk}`)
         else basicStatsRightMissing.push(`❌ LUK: Not detected`)
         
         const allBasicStatsLeft = [...basicStatsLeft, ...basicStatsLeftMissing]
@@ -500,53 +506,53 @@ export class CommandHandler {
         const detailedStatsRightMissing = []
         
         // Left Column: DAMAGE RANGE, FINAL DAMAGE, IGNORE DEFENSE, ATTACK POWER, MAGIC ATT, COOLDOWN REDUCTION, COOLDOWN NOT APPLIED, ADDITIONAL STATUS DAMAGE
-        if ((character.stats as any)._originalExtracted?.damageRange !== undefined) detailedStatsLeft.push(`✅ Damage Range: ${(character.stats as any).damageRange.toLocaleString()}`)
+        if (wasDetected('damageRange')) detailedStatsLeft.push(`✅ Damage Range: ${(character.stats as any).damageRange.toLocaleString()}`)
         else detailedStatsLeftMissing.push(`❌ Damage Range: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.finalDamage !== undefined) detailedStatsLeft.push(`✅ Final Damage: ${(character.stats as any).finalDamage}%`)
+        if (wasDetected('finalDamage')) detailedStatsLeft.push(`✅ Final Damage: ${(character.stats as any).finalDamage}%`)
         else detailedStatsLeftMissing.push(`❌ Final Damage: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.ignoreDefense !== undefined) detailedStatsLeft.push(`✅ Ignore Defense: ${(character.stats as any).ignoreDefense}%`)
+        if (wasDetected('ignoreDefense')) detailedStatsLeft.push(`✅ Ignore Defense: ${(character.stats as any).ignoreDefense}%`)
         else detailedStatsLeftMissing.push(`❌ Ignore Defense: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.attackPower !== undefined) detailedStatsLeft.push(`✅ Attack Power: ${(character.stats as any).attackPower.toLocaleString()}`)
+        if (wasDetected('attackPower')) detailedStatsLeft.push(`✅ Attack Power: ${(character.stats as any).attackPower.toLocaleString()}`)
         else detailedStatsLeftMissing.push(`❌ Attack Power: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.magicAttack !== undefined) detailedStatsLeft.push(`✅ Magic Attack: ${(character.stats as any).magicAttack.toLocaleString()}`)
+        if (wasDetected('magicAttack')) detailedStatsLeft.push(`✅ Magic Attack: ${(character.stats as any).magicAttack.toLocaleString()}`)
         else detailedStatsLeftMissing.push(`❌ Magic Attack: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.cooldownReduction !== undefined) detailedStatsLeft.push(`✅ Cooldown Reduction: ${(character.stats as any).cooldownReduction}`)
+        if (wasDetected('cooldownReduction')) detailedStatsLeft.push(`✅ Cooldown Reduction: ${(character.stats as any).cooldownReduction}`)
         else detailedStatsLeftMissing.push(`❌ Cooldown Reduction: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.cooldownNotApplied !== undefined) detailedStatsLeft.push(`✅ Cooldown Not Applied: ${(character.stats as any).cooldownNotApplied}%`)
+        if (wasDetected('cooldownNotApplied')) detailedStatsLeft.push(`✅ Cooldown Not Applied: ${(character.stats as any).cooldownNotApplied}%`)
         else detailedStatsLeftMissing.push(`❌ Cooldown Not Applied: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.additionalStatusDamage !== undefined) detailedStatsLeft.push(`✅ Additional Status Damage: ${(character.stats as any).additionalStatusDamage}%`)
+        if (wasDetected('additionalStatusDamage')) detailedStatsLeft.push(`✅ Additional Status Damage: ${(character.stats as any).additionalStatusDamage}%`)
         else detailedStatsLeftMissing.push(`❌ Additional Status Damage: Not detected`)
         
         // Right Column: DAMAGE, BOSS DAMAGE, NORMAL ENEMY DAMAGE, CRITICAL RATE, CRITICAL DAMAGE, BUFF DURATION, IGNORE ELEMENTAL RESISTANCE, SUMMONS DURATION INCREASE
-        if ((character.stats as any)._originalExtracted?.damage !== undefined) detailedStatsRight.push(`✅ Damage: ${(character.stats as any).damage}%`)
+        if (wasDetected('damage')) detailedStatsRight.push(`✅ Damage: ${(character.stats as any).damage}%`)
         else detailedStatsRightMissing.push(`❌ Damage: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.bossDamage !== undefined) detailedStatsRight.push(`✅ Boss Damage: ${(character.stats as any).bossDamage}%`)
+        if (wasDetected('bossDamage')) detailedStatsRight.push(`✅ Boss Damage: ${(character.stats as any).bossDamage}%`)
         else detailedStatsRightMissing.push(`❌ Boss Damage: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.normalEnemyDamage !== undefined) detailedStatsRight.push(`✅ Normal Enemy Damage: ${(character.stats as any).normalEnemyDamage}%`)
+        if (wasDetected('normalEnemyDamage')) detailedStatsRight.push(`✅ Normal Enemy Damage: ${(character.stats as any).normalEnemyDamage}%`)
         else detailedStatsRightMissing.push(`❌ Normal Enemy Damage: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.criticalRate !== undefined) detailedStatsRight.push(`✅ Critical Rate: ${(character.stats as any).criticalRate}%`)
+        if (wasDetected('criticalRate')) detailedStatsRight.push(`✅ Critical Rate: ${(character.stats as any).criticalRate}%`)
         else detailedStatsRightMissing.push(`❌ Critical Rate: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.criticalDamage !== undefined) detailedStatsRight.push(`✅ Critical Damage: ${(character.stats as any).criticalDamage}%`)
+        if (wasDetected('criticalDamage')) detailedStatsRight.push(`✅ Critical Damage: ${(character.stats as any).criticalDamage}%`)
         else detailedStatsRightMissing.push(`❌ Critical Damage: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.buffDuration !== undefined) detailedStatsRight.push(`✅ Buff Duration: ${(character.stats as any).buffDuration}%`)
+        if (wasDetected('buffDuration')) detailedStatsRight.push(`✅ Buff Duration: ${(character.stats as any).buffDuration}%`)
         else detailedStatsRightMissing.push(`❌ Buff Duration: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.ignoreElementalResistance !== undefined) detailedStatsRight.push(`✅ Ignore Elemental Resistance: ${(character.stats as any).ignoreElementalResistance}%`)
+        if (wasDetected('ignoreElementalResistance')) detailedStatsRight.push(`✅ Ignore Elemental Resistance: ${(character.stats as any).ignoreElementalResistance}%`)
         else detailedStatsRightMissing.push(`❌ Ignore Elemental Resistance: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.summonsDurationIncrease !== undefined) detailedStatsRight.push(`✅ Summons Duration Increase: ${(character.stats as any).summonsDurationIncrease}%`)
+        if (wasDetected('summonsDurationIncrease')) detailedStatsRight.push(`✅ Summons Duration Increase: ${(character.stats as any).summonsDurationIncrease}%`)
         else detailedStatsRightMissing.push(`❌ Summons Duration Increase: Not detected`)
         
         const allDetailedStatsLeft = [...detailedStatsLeft, ...detailedStatsLeftMissing]
@@ -564,23 +570,23 @@ export class CommandHandler {
         const utilityPowerStatsRightMissing = []
         
         // Left Column: MESOS OBTAINED, ITEM DROP RATE, ADDITIONAL EXP OBTAINED
-        if ((character.stats as any)._originalExtracted?.mesosObtained !== undefined) utilityPowerStatsLeft.push(`✅ Mesos Obtained: ${(character.stats as any).mesosObtained}%`)
+        if (wasDetected('mesosObtained')) utilityPowerStatsLeft.push(`✅ Mesos Obtained: ${(character.stats as any).mesosObtained}%`)
         else utilityPowerStatsLeftMissing.push(`❌ Mesos Obtained: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.itemDropRate !== undefined) utilityPowerStatsLeft.push(`✅ Item Drop Rate: ${(character.stats as any).itemDropRate}%`)
+        if (wasDetected('itemDropRate')) utilityPowerStatsLeft.push(`✅ Item Drop Rate: ${(character.stats as any).itemDropRate}%`)
         else utilityPowerStatsLeftMissing.push(`❌ Item Drop Rate: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.additionalExpObtained !== undefined) utilityPowerStatsLeft.push(`✅ Additional EXP Obtained: ${(character.stats as any).additionalExpObtained}%`)
+        if (wasDetected('additionalExpObtained')) utilityPowerStatsLeft.push(`✅ Additional EXP Obtained: ${(character.stats as any).additionalExpObtained}%`)
         else utilityPowerStatsLeftMissing.push(`❌ Additional EXP Obtained: Not detected`)
         
         // Right Column: STAR FORCE, ARCANE POWER, SACRED POWER
-        if ((character.stats as any)._originalExtracted?.starForce !== undefined) utilityPowerStatsRight.push(`✅ Star Force: ${(character.stats as any).starForce}`)
+        if (wasDetected('starForce')) utilityPowerStatsRight.push(`✅ Star Force: ${(character.stats as any).starForce}`)
         else utilityPowerStatsRightMissing.push(`❌ Star Force: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.arcanePower !== undefined) utilityPowerStatsRight.push(`✅ Arcane Power: ${(character.stats as any).arcanePower.toLocaleString()}`)
+        if (wasDetected('arcanePower')) utilityPowerStatsRight.push(`✅ Arcane Power: ${(character.stats as any).arcanePower.toLocaleString()}`)
         else utilityPowerStatsRightMissing.push(`❌ Arcane Power: Not detected`)
         
-        if ((character.stats as any)._originalExtracted?.sacredPower !== undefined) utilityPowerStatsRight.push(`✅ Sacred Power: ${(character.stats as any).sacredPower.toLocaleString()}`)
+        if (wasDetected('sacredPower')) utilityPowerStatsRight.push(`✅ Sacred Power: ${(character.stats as any).sacredPower.toLocaleString()}`)
         else utilityPowerStatsRightMissing.push(`❌ Sacred Power: Not detected`)
         
         const allUtilityPowerStatsLeft = [...utilityPowerStatsLeft, ...utilityPowerStatsLeftMissing]
