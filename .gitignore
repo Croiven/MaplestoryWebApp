@@ -111,3 +111,8 @@ prisma/migrations/
 
 # Docker
 .dockerignore
+
+# API Keys and Secrets
+**/google-vision-key.json
+**/*-key.json
+**/service-account*.json
