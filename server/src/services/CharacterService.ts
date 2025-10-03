@@ -7,7 +7,7 @@ export interface CharacterData {
   level: number
   job: string
   world: string
-  userId: string
+  discordUserId: string
   stats: {
     str: number
     dex: number
@@ -16,18 +16,14 @@ export interface CharacterData {
     hp: number
     mp: number
   }
-  equipment?: {
-    weapon?: string
-    armor?: string
-    accessories?: string[]
-  }
 }
 
 export class CharacterService {
-  async getAllCharacters(userId: string) {
+  async getAllCharacters(discordUserId: string) {
     try {
+      const whereClause = discordUserId ? { discordUserId } : {}
       const characters = await prisma.character.findMany({
-        where: { userId },
+        where: whereClause,
         orderBy: { createdAt: 'desc' }
       })
       return characters
@@ -37,13 +33,10 @@ export class CharacterService {
     }
   }
 
-  async getCharacterById(id: string, userId: string) {
+  async getCharacterById(id: string) {
     try {
       const character = await prisma.character.findFirst({
-        where: { 
-          id,
-          userId 
-        }
+        where: { id }
       })
       return character
     } catch (error) {
@@ -60,9 +53,8 @@ export class CharacterService {
           level: data.level,
           job: data.job,
           world: data.world,
-          userId: data.userId,
-          stats: data.stats,
-          equipment: data.equipment || {}
+          discordUserId: data.discordUserId,
+          stats: data.stats
         }
       })
       return character
@@ -72,12 +64,12 @@ export class CharacterService {
     }
   }
 
-  async updateCharacter(id: string, data: Partial<CharacterData>, userId: string) {
+  async updateCharacter(id: string, data: Partial<CharacterData>, discordUserId: string) {
     try {
       const character = await prisma.character.updateMany({
         where: { 
           id,
-          userId 
+          discordUserId 
         },
         data: {
           ...(data.name && { name: data.name }),
@@ -85,7 +77,6 @@ export class CharacterService {
           ...(data.job && { job: data.job }),
           ...(data.world && { world: data.world }),
           ...(data.stats && { stats: data.stats }),
-          ...(data.equipment && { equipment: data.equipment }),
           updatedAt: new Date()
         }
       })
@@ -94,19 +85,19 @@ export class CharacterService {
         return null
       }
 
-      return await this.getCharacterById(id, userId)
+      return await this.getCharacterById(id)
     } catch (error) {
       console.error('Error updating character:', error)
       throw error
     }
   }
 
-  async deleteCharacter(id: string, userId: string) {
+  async deleteCharacter(id: string, discordUserId: string) {
     try {
       const result = await prisma.character.deleteMany({
         where: { 
           id,
-          userId 
+          discordUserId 
         }
       })
       return result.count > 0

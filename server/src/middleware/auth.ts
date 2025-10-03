@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
 interface JwtPayload {
-  userId: string
+  discordUserId: string
   iat: number
   exp: number
 }
@@ -22,7 +22,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     }
 
     const decoded = jwt.verify(token, secret) as JwtPayload
-    ;(req as any).user = { id: decoded.userId }
+    ;(req as any).user = { id: decoded.discordUserId }
     next()
   } catch (error) {
     console.error('Token verification error:', error)

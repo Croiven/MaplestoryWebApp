@@ -7,11 +7,20 @@ import { commands } from './commands'
 import dotenv from 'dotenv'
 import path from 'path'
 
-// Load environment variables
-dotenv.config()
+// Load environment variables from root directory
+dotenv.config({ path: path.join(__dirname, '../../.env') })
 
-// Debug: Check if token is loaded
+// Fix Google Cloud credentials path to be absolute
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  const credentialsPath = path.resolve(__dirname, '../../', process.env.GOOGLE_APPLICATION_CREDENTIALS)
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath
+  console.log('🔧 Fixed Google credentials path:', credentialsPath)
+}
+
+// Debug: Check if environment variables are loaded
 console.log('Discord Bot Token loaded:', process.env.DISCORD_BOT_TOKEN ? 'YES' : 'NO')
+console.log('Google Cloud Project ID loaded:', process.env.GOOGLE_CLOUD_PROJECT_ID ? 'YES' : 'NO')
+console.log('Google Credentials loaded:', process.env.GOOGLE_APPLICATION_CREDENTIALS ? 'YES' : 'NO')
 
 class MapleStoryBot {
   private client: Client

@@ -8,7 +8,11 @@ interface Character {
   level: number
   job: string
   world: string
-  lastLogin?: string
+  main: boolean
+  avatar?: string | null
+  experience?: number | null
+  createdAt: string
+  updatedAt: string
 }
 
 export function CharacterList() {
@@ -17,30 +21,29 @@ export function CharacterList() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    const mockCharacters: Character[] = [
-      {
-        id: '1',
-        name: 'TestCharacter',
-        level: 200,
-        job: 'Hero',
-        world: 'Scania',
-        lastLogin: '2024-01-15'
-      },
-      {
-        id: '2',
-        name: 'AnotherChar',
-        level: 150,
-        job: 'Arch Mage',
-        world: 'Bera',
-        lastLogin: '2024-01-14'
+    const fetchCharacters = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/characters', {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch characters')
+        }
+
+        const data = await response.json()
+        setCharacters(data.characters || [])
+      } catch (error) {
+        console.error('Error fetching characters:', error)
+        setCharacters([])
+      } finally {
+        setLoading(false)
       }
-    ]
-    
-    setTimeout(() => {
-      setCharacters(mockCharacters)
-      setLoading(false)
-    }, 1000)
+    }
+
+    fetchCharacters()
   }, [])
 
   const filteredCharacters = characters.filter(character =>
@@ -58,7 +61,7 @@ export function CharacterList() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">Characters</h1>
         <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors">
@@ -80,34 +83,64 @@ export function CharacterList() {
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {filteredCharacters.length === 0 ? (
-          <div className="text-center py-12">
-            <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">No characters found</h3>
-            <p className="text-gray-400">Try adjusting your search or add a new character.</p>
-          </div>
-        ) : (
-          filteredCharacters.map((character) => (
-            <Link
-              key={character.id}
-              to={`/characters/${character.id}`}
-              className="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg shadow-lg transition-colors"
-            >
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredCharacters.length === 0 ? (
+            <div className="text-center py-12">
+              <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">No characters found</h3>
+              <p className="text-gray-400">Try adjusting your search or add a new character.</p>
+            </div>
+          ) : (
+            filteredCharacters.map((character) => (
+              <Link
+                key={character.id}
+                to={`/characters/${character.id}`}
+                className="bg-gray-800 hover:bg-gray-700 p-6 rounded-lg shadow-lg transition-colors"
+              >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-white" />
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                    {/* Henesys Background for Avatar */}
+                    <div 
+                      className="absolute inset-0 bg-cover bg-no-repeat"
+                      style={{
+                        backgroundImage: 'url("/images/henesys_background.png")',
+                        backgroundSize: '115%',
+                        backgroundPosition: 'center 0%'
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {character.avatar ? (
+                        <img 
+                          src={character.avatar} 
+                          alt={`${character.name} avatar`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to icon if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            (e.currentTarget.nextElementSibling as HTMLElement)?.style.setProperty('display', 'flex');
+                          }}
+                        />
+                      ) : null}
+                      <User className={`h-6 w-6 text-white ${character.avatar ? 'hidden' : 'flex'}`} />
+                    </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white">{character.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-xl font-semibold text-white">{character.name}</h3>
+                      {character.main && (
+                        <span className="bg-yellow-600 text-yellow-100 text-xs px-2 py-1 rounded-full font-medium">
+                          MAIN
+                        </span>
+                      )}
+                    </div>
                     <p className="text-gray-400">{character.job} • Level {character.level}</p>
                     <p className="text-sm text-gray-500">{character.world}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-400">Last login</p>
-                  <p className="text-gray-300">{character.lastLogin}</p>
+                  <p className="text-sm text-gray-400">Created</p>
+                  <p className="text-gray-300">{new Date(character.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
             </Link>

@@ -6,7 +6,10 @@ import rateLimit from 'express-rate-limit'
 import dotenv from 'dotenv'
 import path from 'path'
 import { characterRoutes } from './routes/characters'
+import { userRoutes } from './routes/users'
+import { progressionRoutes } from './routes/progression'
 import { authRoutes } from './routes/auth'
+import { SchedulerService } from './services/SchedulerService'
 import { errorHandler } from './middleware/errorHandler'
 import { notFound } from './middleware/notFound'
 
@@ -50,12 +53,19 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes)
 app.use('/api/characters', characterRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api', progressionRoutes)
 
 // Error handling
 app.use(notFound)
 app.use(errorHandler)
 
+// Start the scheduler
+const scheduler = new SchedulerService()
+scheduler.start()
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`)
   console.log(`📊 Health check: http://localhost:${PORT}/health`)
+  console.log(`🔄 Character progression tracking enabled`)
 })

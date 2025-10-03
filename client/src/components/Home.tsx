@@ -25,7 +25,7 @@ export function Home() {
   ]
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-white mb-4">
           Welcome to MapleStory Web App

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sword, Home, Users } from 'lucide-react'
+import { Sword, Home, Users, UserCheck } from 'lucide-react'
 
 export function Navigation() {
   const location = useLocation()
@@ -7,11 +7,12 @@ export function Navigation() {
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/characters', label: 'Characters', icon: Users },
+    { path: '/users', label: 'Users', icon: UserCheck },
   ]
 
   return (
     <nav className="bg-gray-800 shadow-lg">
-      <div className="container mx-auto px-4">
+      <div className="w-full px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-2">
             <Sword className="h-8 w-8 text-blue-500" />

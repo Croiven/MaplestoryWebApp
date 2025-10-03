@@ -60,5 +60,25 @@ export const commands = [
 
   new SlashCommandBuilder()
     .setName('characters')
-    .setDescription('List all characters')
+    .setDescription('List all characters'),
+
+  new SlashCommandBuilder()
+    .setName('addcharacter')
+    .setDescription('Add a character by uploading a screenshot of the stats window')
+    .addAttachmentOption(option =>
+      option
+        .setName('screenshot')
+        .setDescription('Screenshot of the MapleStory character stats window')
+        .setRequired(true)
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('main')
+        .setDescription('Mark this character as your main character')
+        .setRequired(false)
+    ),
+
+  new SlashCommandBuilder()
+    .setName('registeruser')
+    .setDescription('Register yourself as a user in the MapleStory database')
 ]

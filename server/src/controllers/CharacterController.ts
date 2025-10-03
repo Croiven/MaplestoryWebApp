@@ -4,101 +4,45 @@ import { CharacterService } from '../services/CharacterService'
 export class CharacterController {
   private characterService = new CharacterService()
 
-  async getAllCharacters(req: Request, res: Response) {
+  getAllCharacters = async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user?.id
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      const characters = await this.characterService.getAllCharacters(userId)
-      res.json({ characters })
+      // Get all characters (public access)
+      const characters = await this.characterService.getAllCharacters('')
+      
+      // Convert BigInt values to strings for JSON serialization
+      const serializedCharacters = characters.map(char => ({
+        ...char,
+        experience: char.experience ? char.experience.toString() : null
+      }))
+      
+      res.json({ characters: serializedCharacters })
     } catch (error) {
       console.error('Error fetching characters:', error)
       res.status(500).json({ error: 'Internal server error' })
     }
   }
 
-  async getCharacterById(req: Request, res: Response) {
+  getCharacterById = async (req: Request, res: Response) => {
     try {
       const { id } = req.params
-      const userId = (req as any).user?.id
       
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      const character = await this.characterService.getCharacterById(id, userId)
+      // Get character by ID (public access)
+      const character = await this.characterService.getCharacterById(id)
       if (!character) {
         return res.status(404).json({ error: 'Character not found' })
       }
 
-      res.json({ character })
+      // Convert BigInt values to strings for JSON serialization
+      const serializedCharacter = {
+        ...character,
+        experience: character.experience ? character.experience.toString() : null
+      }
+
+      res.json({ character: serializedCharacter })
     } catch (error) {
       console.error('Error fetching character:', error)
       res.status(500).json({ error: 'Internal server error' })
     }
   }
 
-  async createCharacter(req: Request, res: Response) {
-    try {
-      const userId = (req as any).user?.id
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      const characterData = {
-        ...req.body,
-        userId
-      }
-
-      const character = await this.characterService.createCharacter(characterData)
-      res.status(201).json({ character })
-    } catch (error) {
-      console.error('Error creating character:', error)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
-
-  async updateCharacter(req: Request, res: Response) {
-    try {
-      const { id } = req.params
-      const userId = (req as any).user?.id
-      
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      const character = await this.characterService.updateCharacter(id, req.body, userId)
-      if (!character) {
-        return res.status(404).json({ error: 'Character not found' })
-      }
-
-      res.json({ character })
-    } catch (error) {
-      console.error('Error updating character:', error)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
-
-  async deleteCharacter(req: Request, res: Response) {
-    try {
-      const { id } = req.params
-      const userId = (req as any).user?.id
-      
-      if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      const success = await this.characterService.deleteCharacter(id, userId)
-      if (!success) {
-        return res.status(404).json({ error: 'Character not found' })
-      }
-
-      res.json({ message: 'Character deleted successfully' })
-    } catch (error) {
-      console.error('Error deleting character:', error)
-      res.status(500).json({ error: 'Internal server error' })
-    }
-  }
 }

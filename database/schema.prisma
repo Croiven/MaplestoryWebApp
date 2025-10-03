@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,67 +7,68 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  characters Character[]
-  refreshTokens RefreshToken[]
-  discordUsers DiscordUser[]
-
-  @@map("users")
-}
-
-model Character {
-  id        String   @id @default(cuid())
-  name      String
-  level     Int
-  job       String
-  world     String
-  stats     Json     // { str, dex, int, luk, hp, mp }
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("characters")
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("refresh_tokens")
-}
-
 model DiscordUser {
-  id            String   @id @default(cuid())
-  discordId     String   @unique
+  id            String    @id @default(cuid())
+  discordId     String    @unique
   username      String
   discriminator String?
   avatar        String?
   accessToken   String?
   refreshToken  String?
   expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  characters    Character[]
 
   @@map("discord_users")
 }
+
+model Character {
+  id           String      @id @default(cuid())
+  name         String
+  level        Int
+  job          String
+  world        String
+  avatar       String?     // Character avatar URL
+  experience   BigInt?     // Character experience points
+  main         Boolean     @default(false) // Main character flag
+  stats        Json        // Character stats object with all MapleStory stats
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  discordUserId String
+  discordUser  DiscordUser @relation(fields: [discordUserId], references: [id], onDelete: Cascade)
+  history      CharacterHistory[]
+  progression  CharacterProgression[]
+
+  @@map("characters")
+}
+
+model CharacterHistory {
+  id           String      @id @default(cuid())
+  characterId  String
+  character    Character   @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  level        Int
+  job          String
+  world        String
+  avatar       String?
+  experience   BigInt?
+  stats        Json
+  createdAt    DateTime    @default(now())
+
+  @@map("character_history")
+}
+
+model CharacterProgression {
+  id           String      @id @default(cuid())
+  characterId  String
+  character    Character   @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  level        Int
+  experience   BigInt      // Use BigInt for large experience values
+  rank         Int?        // Ranking position
+  legionLevel  Int?        // Legion level
+  raidPower    Int?        // Raid power
+  lastUpdated  DateTime    @default(now())
+
+  @@map("character_progression")
+}
+

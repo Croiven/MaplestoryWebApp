@@ -5,25 +5,59 @@ export interface Character {
   job: string
   world: string
   stats: CharacterStats
-  equipment?: CharacterEquipment
   createdAt: Date
   updatedAt: Date
   userId?: string
 }
 
 export interface CharacterStats {
+  // Basic Stats
   str: number
   dex: number
   int: number
   luk: number
   hp: number
   mp: number
-}
-
-export interface CharacterEquipment {
-  weapon?: string
-  armor?: string
-  accessories?: string[]
+  
+  // Combat Power
+  combatPower: number
+  
+  // Damage Stats
+  damageRange: number
+  finalDamage: number
+  ignoreDefense: number
+  attackPower: number
+  magicAttack: number
+  
+  // Cooldown Stats
+  cooldownReduction: number
+  cooldownNotApplied: number
+  
+  // Status & Buff Stats
+  additionalStatusDamage: number
+  damage: number
+  bossDamage: number
+  normalEnemyDamage: number
+  criticalRate: number
+  criticalDamage: number
+  buffDuration: number
+  ignoreElementalResistance: number
+  summonsDurationIncrease: number
+  
+  // Utility Stats
+  mesosObtained: number
+  itemDropRate: number
+  additionalExpObtained: number
+  
+  // Power Stats
+  starForce: number
+  arcanePower: number
+  sacredPower: number
+  
+  // Social Stats
+  legion: number
+  muLungDojo: number
+  fame: number
 }
 
 export interface CreateCharacterData {
@@ -32,7 +66,6 @@ export interface CreateCharacterData {
   job: string
   world: string
   stats: CharacterStats
-  equipment?: CharacterEquipment
 }
 
 export interface UpdateCharacterData {
@@ -41,7 +74,6 @@ export interface UpdateCharacterData {
   job?: string
   world?: string
   stats?: Partial<CharacterStats>
-  equipment?: Partial<CharacterEquipment>
 }
 
 export interface CharacterFilters {
